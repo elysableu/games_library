@@ -1,13 +1,18 @@
 import { Card } from './card.js';
+import { Shuffle } from '#utility/shuffle.js';
 
-class Deck {
+export class Deck {
     static suits = ['H', 'D', 'S', 'C'];
     static values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
-    constructor(jokers = false) {
+    constructor(shuffled = false) {
         this.cards = [];
-        // this.jokers = jokers;
+        
         this.populateDeck();
+        if (shuffled) {
+            this.shuffle();
+        }
+
     }
 
     populateDeck() {
@@ -20,11 +25,7 @@ class Deck {
 
     // Fisher-Yates Shuffle -> Add FaroShuffle and RiffleShuffle
     shuffle() {
-        for (let i = this.cards.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-
-            [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
-        }
+       Shuffle.fyShuffle(this.cards);
     }
 
     deal() {
@@ -32,9 +33,10 @@ class Deck {
     }
 }
 
-const myDeck = new Deck();
-console.log(myDeck.cards);
-myDeck.shuffle();
+// Temp Unit Testing ---------------
+// const myDeck = new Deck(true);
+// console.log(myDeck.cards);
+// myDeck.shuffle();
 
-console.log(myDeck.cards);
-console.log(myDeck.deal());
+// console.log(myDeck.cards);
+// console.log(myDeck.deal());
