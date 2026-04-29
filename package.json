@@ -9,5 +9,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module"
+  "type": "module",
+  "imports": {
+    "#utility/*": "./utility/*",
+    "#game_pieces/*": "./game_pieces/*",
+    "#players/*": "./game_pieces/players/*"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^8.4.2"
+  }
 }
