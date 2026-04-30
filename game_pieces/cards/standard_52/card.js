@@ -10,4 +10,8 @@ export class Card {
         this.value = value;
         this.numVal = Card.numValMap[value];
     }
+
+    display() {
+        return `${this.suit}${this.value}`;
+    }
 }

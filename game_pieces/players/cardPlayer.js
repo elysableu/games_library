@@ -1,6 +1,6 @@
 export class CardPlayer {
     constructor(num) {
-        this.name = `player${num}`;
+        this.name = `Player${num}`;
         this.hand = [];
         ;
     }
@@ -9,8 +9,19 @@ export class CardPlayer {
         this.hand.push(card);
     }
 
-    playCard(index) {
-        return this.hand.splice(index, 1)[0];
+    playCard(card) {
+        const index = this.hand.indexOf(card);
+        this.hand.splice(index, 1);
+    }
+
+    displayHand() {
+        let hand = '';
+
+        this.hand.forEach(card => {
+            hand += `${card.suit}${card.value} `;
+        })
+
+        return hand;
     }
 
     clearHand() {
