@@ -23,9 +23,8 @@ export class Deck {
         });
     }
 
-    // Fisher-Yates Shuffle -> Add FaroShuffle and RiffleShuffle
     shuffle() {
-       Shuffle.fyShuffle(this.cards);
+        Shuffle.fyShuffle(this.cards);
     }
 
     deal() {
