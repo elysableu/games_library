@@ -12,7 +12,6 @@ export class Deck {
         if (shuffled) {
             this.shuffle();
         }
-
     }
 
     populateDeck() {

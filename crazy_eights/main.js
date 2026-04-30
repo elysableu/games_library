@@ -28,7 +28,7 @@ class Game {
         this.players = [];
         this.stock = new Deck(true);
         this.discard = [];
-        this.resolved = false;
+        this.crazySuit = '';
        
         this.build();
     }
@@ -77,16 +77,23 @@ class Game {
         }
 
         console.log('Ready to play!');
-        const played = this.takeTurn(this.players[0]);
 
-        if (this.gameResolve(played)) {
-            console.log(`Congrats! You won ${player.name}.`);
-            console.log('Thanks for playing!');
-            process.exit(0);
-        }
-
+        let resolved = false;
+        let currentPlayerIndex = 0;
+        
         // Loop throw players until someone's hand size is zero
-       
+        do {
+            let played = await this.takeTurn(this.players[currentPlayerIndex]);
+    
+            if (this.gameResolve(played)) {
+                console.log(played.hand);
+                console.log(`Congrats! You won ${played.name}.`);
+                resolved = true;
+            }
+
+            currentPlayerIndex = (currentPlayerIndex + 1) % this.players.length;
+        } while (!resolved) 
+        
     }
 
     async takeTurn(player) {
@@ -94,7 +101,11 @@ class Game {
         console.log(player.name + ', it\'s your turn!');
         console.log(' Discard | Stock ');
         console.log('------------------');
-        console.log(`   ${this.discard[0].display()}    |   *`);
+        console.log(`   ${this.topCard().display()}    |   *`);
+        console.log("Should be here: " + this.crazySuit);
+        if ( this.crazySuit !== '') {
+            console.log(`The next card must be a ${this.crazySuit}`);
+        }
 
         let play;
         let validPlay = false;
@@ -103,39 +114,41 @@ class Game {
         do {
             // When player is the human player
             play =  await this.humanPlay(player);
-            validPlay = this.validPlay(play);
+            
+            if (play === null) {
+                break;
+            }
+
+            validPlay = await this.validPlay(play);
             
             // When Player is a digital player
             // play = this.computerPlay(player);
             
             // Check if valid play, otherwise prompt to try again!
             if (!validPlay) {
-                console.log("Inside 1st if"); 
                 if (!playsChecked.includes(play)) {
-                    console.log("Inside 2nd if");
                     playsChecked.push(play);
                 }
                 console.log('Invalid play, try again!');
             }
-
-            console.log(play);
-            console.log(playsChecked);
         } while (!validPlay && playsChecked.length < player.hand.length);
 
-        if (!validPlay && playsChecked.length === player.hand.length) {
+        if (play === null || (!validPlay && playsChecked.length === player.hand.length)) {
             console.log('Draw time!');
             // Player draws cards until one is valid
             // Adds cards to the player's hand and returns the valid play
             play = await this.drawUntilValid(player);
-            console.log(play + ', finally!');
+            console.log(play.display() + ', finally!');
         } 
 
-
+        
         // With valid card, player plays card
         player.playCard(play);
         this.discard.push(play);
 
-        // Resolve game? return player hand size
+        if (!this.isEight(play)) {
+            this.resetCrazySuit();
+        }
 
         console.log('End Turn ---------');
         return player;
@@ -160,10 +173,14 @@ class Game {
         console.log(player.displayHand());
         const play = await select({
             message: 'What\'s your play?',
-            choices: player.hand.map((card) => ({
+            loop: false,
+            choices: [ 
+                ...player.hand.map((card) => ({
                 name: card.display(),
                 value: card
-            }))
+                })),
+                {name: 'Draw!', value: null }
+            ]
         });
         
         return play;
@@ -173,18 +190,48 @@ class Game {
         return this.discard[this.discard.length - 1];
     }
 
-    validPlay(card) {
+    async validPlay(card) {
+        if (this.crazySuit !== '' && this.topCard().value === '8') {
+            console.log("On eight valid");
+            return card.suit === this.crazySuit || this.isEight(card);
+        }
+
+        if (this.isEight(card)) {
+            console.log("Is eight valid");
+             this.crazySuit = await select({
+                message: 'Woohoo! That\'s a crazy eight!  What suit must your opponent play next?',
+                loop: false,
+                choices: [
+                    {name: 'Hearts', value:'H'},
+                    {name: 'Diamonds', value: 'D'},
+                    {name: 'Spades', value: 'S'},
+                    {name: 'Clubs', value: 'C'},
+                ]
+            });
+            
+            return true;
+        }
+        console.log("Other valid");
         return (card.value === this.topCard().value || card.suit === this.topCard().suit);
     }
 
-    drawUntilValid(player) {
+    isEight(card) {
+        return card.value === '8';
+    }
+
+    resetCrazySuit() {
+        if (this.crazySuit !== '') {
+            this.crazySuit = '';
+        }
+     }
+
+    async drawUntilValid(player) {
         let card;
         let valid = false;
 
         do {
-            card = this.stack.deal();
-            valid = this.validPlay(card);
-            console.log(`${card.display()}`)
+            card = this.stock.deal();
+            valid = await this.validPlay(card);
 
             if (!valid) {
                 console.log(`${card.display()}, nope :(`)
@@ -195,8 +242,8 @@ class Game {
         return card;
     }
 
-    gameResolve() {
-
+    gameResolve(player) {
+        return player.hand.length === 0;
     }
 }
 
