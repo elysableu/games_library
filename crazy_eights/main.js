@@ -15,17 +15,19 @@
 
 */
 
-import { input, select, confirm } from '@inquirer/prompts';
+import { input, select, confirm, number } from '@inquirer/prompts';
 import { CardPlayer } from '#players/cardPlayer.js';
 import { Deck } from '#game_pieces/cards/standard_52/deck.js';
 import { Shuffle } from '#utility/shuffle.js';
 
 
 class Game {
-    // SETUP THE GAME (including players, starting hands, disicard pile)
-    constructor(numPlayers) {
+    // Game Object Instantiation
+    constructor(numPlayers, computerOpponent) {
         this.numPlayers = numPlayers;
         this.players = [];
+        this.computerOpponent = computerOpponent;
+        this.humanPlayer;
         this.stock = new Deck(true);
         this.discard = [];
         this.crazySuit = '';
@@ -33,6 +35,38 @@ class Game {
         this.build();
     }
 
+    // ------------------ STATIC METHODS ------------------
+    static async init() {
+         // Prompt for game play
+        console.log('Let\'s get crazy with some crazy 8\'s!');
+        let answer = false;
+
+        while (!answer) {
+            answer = await confirm({message: 'It\'s gonna be fun! Is everyone ready to play?'});
+        }
+
+        // Prompt user to select opponent type
+        const computerOpponent = await select({
+            message: 'Who will your opponent(s) be?',
+            choices: [
+                {name: 'Human', value: false},
+                {name: 'Computer', value: true}
+            ]
+        })
+   
+        // Prompt user to input number of players between 2-6
+        const numPlayers = await number({
+            message: 'How many players (2 to 6)?',
+            min: 2,
+            max: 6
+        });
+
+        console.log('Ready to play!');
+        const game = new Game(numPlayers, computerOpponent);
+        await game.playGame();
+    }
+
+    // ------------------ GAME BUIDLING METHODS ------------------
     build() {
         this.addPlayers();
         this.dealCards();
@@ -45,6 +79,10 @@ class Game {
 
         // Shuffle player order to vary who plays first etc.
         Shuffle.fyShuffle(this.players);
+
+        if(this.computerOpponent) {
+            this.humanPlayer = this.players[0];
+        }
     }
 
     dealCards() {
@@ -65,19 +103,8 @@ class Game {
         this.discard.push(this.stock.deal());
     }
 
-
-    // PLAY THE GAME ----------------------------
+    // ------------------ GAME PLAY METHODS ------------------
     async playGame() {
-        // Prompt for game play
-        console.log('Let\'s get crazy with some crazy 8\'s!');
-        let answer = false;
-
-        while (!answer) {
-            answer = await confirm({message: 'It\'s gonna be fun! Is everyone ready to play?'});
-        }
-
-        console.log('Ready to play!');
-
         let resolved = false;
         let currentPlayerIndex = 0;
         
@@ -102,7 +129,7 @@ class Game {
         console.log(' Discard | Stock ');
         console.log('------------------');
         console.log(`   ${this.topCard().display()}    |   *`);
-        console.log("Should be here: " + this.crazySuit);
+
         if ( this.crazySuit !== '') {
             console.log(`The next card must be a ${this.crazySuit}`);
         }
@@ -110,19 +137,34 @@ class Game {
         let play;
         let validPlay = false;
         let playsChecked = [];
+        
+        if (this.computerOpponent && player !== this.humanPlayer) {
+            this.handDisplay(player);
+        }
 
         do {
-            // When player is the human player
-            play =  await this.humanPlay(player);
+            // Determine game type: human vs. human or human vs. computer
+            if (this.computerOpponent) {
+                // Differentiate between prompted human turns and automated computer turns
+                if (player === this.humanPlayer) {
+                    this.handDisplay(player);
+                    console.log("Human making play =================");
+                    play =  await this.humanPlay(player);
+                } else { 
+                    console.log("Computer making play ================"); 
+                    play = await this.computerPlay(player);
+                    console.log('Wanting to play: ' + play.display());
+                }
+            } else {
+                play =  await this.humanPlay(player);
+            }
             
             if (play === null) {
                 break;
             }
 
+            // Determine play validity
             validPlay = await this.validPlay(play);
-            
-            // When Player is a digital player
-            // play = this.computerPlay(player);
             
             // Check if valid play, otherwise prompt to try again!
             if (!validPlay) {
@@ -131,6 +173,8 @@ class Game {
                 }
                 console.log('Invalid play, try again!');
             }
+
+            // Continue to prompt user until a valid play or user has guessed every card in their hand
         } while (!validPlay && playsChecked.length < player.hand.length);
 
         if (play === null || (!validPlay && playsChecked.length === player.hand.length)) {
@@ -141,11 +185,11 @@ class Game {
             console.log(play.display() + ', finally!');
         } 
 
-        
         // With valid card, player plays card
         player.playCard(play);
         this.discard.push(play);
 
+        // If previous play isEight, then reset crazySuit this turn
         if (!this.isEight(play)) {
             this.resetCrazySuit();
         }
@@ -154,23 +198,7 @@ class Game {
         return player;
     }
 
-    computerPlay(player) {
-        // Compare each card in players hand to the top card of the discard pile
-
-        // IF: any are valid plays -> choose first play or collect all valid plays and select one (randomly) from that collection
-        // Discard a valid card to the top of the discard stack
-        // AKA remove a card from the player's hand and add it to the top of the discard stack
-        // Check player hand size -> if zero then player wins game, else end turn and move on to next player
-
-        // ELSE: require player to draw cards until player draws a valid card
-        // Remove card from stock pile and save to variable
-        // Check if card is valid -> if so add to the top of the discard pile and end turn, else add to player hand and keep drawing
-        
-    }
-
     async humanPlay(player) {
-        console.log('Here\'s your hand.');
-        console.log(player.displayHand());
         const play = await select({
             message: 'What\'s your play?',
             loop: false,
@@ -186,44 +214,25 @@ class Game {
         return play;
     }
 
-    topCard() {
-        return this.discard[this.discard.length - 1];
+    computerPlay(player) {
+        console.log("I am the robot!");
+        const randomIndex = Math.floor(Math.random() * player.hand.length);
+
+        return player.hand[randomIndex];
     }
 
     async validPlay(card) {
         if (this.crazySuit !== '' && this.topCard().value === '8') {
-            console.log("On eight valid");
             return card.suit === this.crazySuit || this.isEight(card);
         }
 
         if (this.isEight(card)) {
-            console.log("Is eight valid");
-             this.crazySuit = await select({
-                message: 'Woohoo! That\'s a crazy eight!  What suit must your opponent play next?',
-                loop: false,
-                choices: [
-                    {name: 'Hearts', value:'H'},
-                    {name: 'Diamonds', value: 'D'},
-                    {name: 'Spades', value: 'S'},
-                    {name: 'Clubs', value: 'C'},
-                ]
-            });
-            
+            await this.promptCrazySuit();
             return true;
         }
-        console.log("Other valid");
+        
         return (card.value === this.topCard().value || card.suit === this.topCard().suit);
     }
-
-    isEight(card) {
-        return card.value === '8';
-    }
-
-    resetCrazySuit() {
-        if (this.crazySuit !== '') {
-            this.crazySuit = '';
-        }
-     }
 
     async drawUntilValid(player) {
         let card;
@@ -242,15 +251,42 @@ class Game {
         return card;
     }
 
+    // ------------------ UTILITY/HELPER METHODS ------------------
+    topCard() {
+        return this.discard[this.discard.length - 1];
+    }
+
+    handDisplay(player) {
+        console.log('Here\'s your hand.');
+        console.log(player.displayHand());
+    }
+
+    isEight(card) {
+        return card.value === '8';
+    }
+
+    async promptCrazySuit() {
+        this.crazySuit = await select({
+            message: 'Woohoo! That\'s a crazy eight!  What suit must your opponent play next?',
+            loop: false,
+            choices: [
+                {name: 'Hearts', value:'H'},
+                {name: 'Diamonds', value: 'D'},
+                {name: 'Spades', value: 'S'},
+                {name: 'Clubs', value: 'C'},
+            ]
+        });
+    }
+
+    resetCrazySuit() {
+        if (this.crazySuit !== '') {
+            this.crazySuit = '';
+        }
+     }
+
     gameResolve(player) {
         return player.hand.length === 0;
     }
 }
 
-
-const myGame = new Game(2);
-// console.log(myGame.players[0].displayHand());
-myGame.playGame();
-const yourGame = new Game(3);
-// console.log(yourGame.stock);
-// console.log(yourGame.players);
+Game.init();
