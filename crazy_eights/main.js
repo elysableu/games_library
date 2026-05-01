@@ -15,7 +15,7 @@
 
 */
 
-import { input, select, confirm } from '@inquirer/prompts';
+import { input, select, confirm, number } from '@inquirer/prompts';
 import { CardPlayer } from '#players/cardPlayer.js';
 import { Deck } from '#game_pieces/cards/standard_52/deck.js';
 import { Shuffle } from '#utility/shuffle.js';
@@ -31,6 +31,26 @@ class Game {
         this.crazySuit = '';
        
         this.build();
+    }
+
+    static async init() {
+         // Prompt for game play
+        console.log('Let\'s get crazy with some crazy 8\'s!');
+        let answer = false;
+
+        while (!answer) {
+            answer = await confirm({message: 'It\'s gonna be fun! Is everyone ready to play?'});
+        }
+
+        const numPlayers = await number({
+            message: 'How many players?',
+            min: 2,
+            max: 6
+        });
+        
+        console.log('Ready to play!');
+        const game = new Game(numPlayers);
+        await game.playGame();
     }
 
     build() {
@@ -68,16 +88,6 @@ class Game {
 
     // PLAY THE GAME ----------------------------
     async playGame() {
-        // Prompt for game play
-        console.log('Let\'s get crazy with some crazy 8\'s!');
-        let answer = false;
-
-        while (!answer) {
-            answer = await confirm({message: 'It\'s gonna be fun! Is everyone ready to play?'});
-        }
-
-        console.log('Ready to play!');
-
         let resolved = false;
         let currentPlayerIndex = 0;
         
@@ -247,10 +257,4 @@ class Game {
     }
 }
 
-
-const myGame = new Game(2);
-// console.log(myGame.players[0].displayHand());
-myGame.playGame();
-const yourGame = new Game(3);
-// console.log(yourGame.stock);
-// console.log(yourGame.players);
+Game.init();
