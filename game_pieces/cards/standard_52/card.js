@@ -28,7 +28,7 @@ export class Card {
     }
 
     display() {
-        return `${this.suit}${this.value}`;
+        return `${this.value}${this.suit}`;
     }
 
     fullDisplay() {

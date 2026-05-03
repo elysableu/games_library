@@ -137,7 +137,11 @@ class Game {
         console.log('------------------');
         console.log('________ | _______');
         console.log('|      | | |  *  |');
-        console.log(`|  ${this.topCard().display()}  | | |* * *|`);
+        if (this.topCard().display().length === 2) {
+            console.log(`|  ${this.topCard().display()}  | | |* * *|`);
+        } else if (this.topCard().display().length === 3) {
+            console.log(`| ${this.topCard().display()}  | | |* * *|`);
+        }
         console.log('|      | | |  *  |');
         console.log('________ | _______');
         console.log(`That\'s a ${this.topCard().fullDisplay()}`);
