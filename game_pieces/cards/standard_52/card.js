@@ -1,5 +1,5 @@
 export class Card {
-    static valueeMap = {
+    static valueMap = {
         'A':  { name: 'Ace',   value: 1  },
         '2':  { name: 'Two',   value: 2  },
         '3':  { name: 'Three', value: 3  },
@@ -16,7 +16,7 @@ export class Card {
     };
 
     static suitNamesMap = {
-        'H': 'Hearts', 'D': 'Diamonds', 'S': 'Spades', 'C': 'Clubcs'
+        'H': 'Hearts', 'D': 'Diamonds', 'S': 'Spades', 'C': 'Clubs'
     }
 
     constructor(suit, value) {

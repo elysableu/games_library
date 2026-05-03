@@ -135,8 +135,15 @@ class Game {
         console.log(player.name + ', it\'s your turn!');
         console.log(' Discard | Stock ');
         console.log('------------------');
-        console.log(this.topCard());
-        console.log(`   ${this.topCard().display()}    |   *`);
+        console.log('________ | _______');
+        console.log('|      | | |  *  |');
+        console.log(`|  ${this.topCard().display()}  | | |* * *|`);
+        console.log('|      | | |  *  |');
+        console.log('________ | _______');
+        console.log(`That\'s a ${this.topCard().fullDisplay()}`);
+        console.log('');
+
+
 
         if ( this.crazySuit !== '') {
             console.log(`The next card must be ${this.getSuitName(this.crazySuit)}`);
@@ -211,7 +218,7 @@ class Game {
             loop: false,
             choices: [ 
                 ...player.hand.map((card) => ({
-                name: card.display(),
+                name: card.fullDisplay(),
                 value: card
                 })),
                 {name: 'Draw!', value: null }
