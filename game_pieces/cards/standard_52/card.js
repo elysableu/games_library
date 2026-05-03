@@ -1,17 +1,37 @@
 export class Card {
-    static numValMap = {
-        'A': 1, '2': 2, '3': 3, '4': 4, 
-        '5': 5, '6': 6, '7': 7, '8': 8,
-         '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13
+    static valueMap = {
+        'A':  { name: 'Ace',   value: 1  },
+        '2':  { name: 'Two',   value: 2  },
+        '3':  { name: 'Three', value: 3  },
+        '4':  { name: 'Four',  value: 4  },
+        '5':  { name: 'Five',  value: 5  },
+        '6':  { name: 'Six',   value: 6  },
+        '7':  { name: 'Seven', value: 7  },
+        '8':  { name: 'Eight', value: 8  },
+        '9':  { name: 'Nine',  value: 9  },
+        '10': { name: 'Ten',   value: 10 },
+        'J':  { name: 'Jack',  value: 11 },
+        'Q':  { name: 'Queen', value: 12 },
+        'K':  { name: 'King',  value: 13 }
+    };
+
+    static suitNamesMap = {
+        'H': 'Hearts', 'D': 'Diamonds', 'S': 'Spades', 'C': 'Clubs'
     }
 
     constructor(suit, value) {
         this.suit = suit;
+        this.suitName = Card.suitNamesMap[suit];
         this.value = value;
-        this.numVal = Card.numValMap[value];
+        this.numVal = Card.valueMap[value].value;
+        this.numName = Card.valueMap[value].name;
     }
 
     display() {
         return `${this.suit}${this.value}`;
+    }
+
+    fullDisplay() {
+        return `${this.numName} of ${this.suitName}`;
     }
 }

@@ -22,6 +22,13 @@ import { Shuffle } from '#utility/shuffle.js';
 
 
 class Game {
+     static suitChoices = [
+                {name: 'Hearts', value:'H'},
+                {name: 'Diamonds', value: 'D'},
+                {name: 'Spades', value: 'S'},
+                {name: 'Clubs', value: 'C'},
+            ];
+
     // Game Object Instantiation
     constructor(numPlayers, computerOpponent) {
         this.numPlayers = numPlayers;
@@ -38,7 +45,7 @@ class Game {
     // ------------------ STATIC METHODS ------------------
     static async init() {
          // Prompt for game play
-        console.log('Let\'s get crazy with some crazy 8\'s!');
+        console.log('Let\'s play with some crazy 8\'s!');
         let answer = false;
 
         while (!answer) {
@@ -128,10 +135,18 @@ class Game {
         console.log(player.name + ', it\'s your turn!');
         console.log(' Discard | Stock ');
         console.log('------------------');
-        console.log(`   ${this.topCard().display()}    |   *`);
+        console.log('________ | _______');
+        console.log('|      | | |  *  |');
+        console.log(`|  ${this.topCard().display()}  | | |* * *|`);
+        console.log('|      | | |  *  |');
+        console.log('________ | _______');
+        console.log(`That\'s a ${this.topCard().fullDisplay()}`);
+        console.log('');
+
+
 
         if ( this.crazySuit !== '') {
-            console.log(`The next card must be a ${this.crazySuit}`);
+            console.log(`The next card must be ${this.getSuitName(this.crazySuit)}`);
         }
 
         let play;
@@ -139,6 +154,7 @@ class Game {
         let playsChecked = [];
         
         if (this.computerOpponent && player !== this.humanPlayer) {
+            console.log("Computer making play ================"); 
             this.handDisplay(player);
         }
 
@@ -147,11 +163,10 @@ class Game {
             if (this.computerOpponent) {
                 // Differentiate between prompted human turns and automated computer turns
                 if (player === this.humanPlayer) {
-                    this.handDisplay(player);
                     console.log("Human making play =================");
+                    this.handDisplay(player);
                     play =  await this.humanPlay(player);
                 } else { 
-                    console.log("Computer making play ================"); 
                     play = await this.computerPlay(player);
                     console.log('Wanting to play: ' + play.display());
                 }
@@ -164,7 +179,7 @@ class Game {
             }
 
             // Determine play validity
-            validPlay = await this.validPlay(play);
+            validPlay = await this.validPlay(play, player);
             
             // Check if valid play, otherwise prompt to try again!
             if (!validPlay) {
@@ -180,9 +195,8 @@ class Game {
         if (play === null || (!validPlay && playsChecked.length === player.hand.length)) {
             console.log('Draw time!');
             // Player draws cards until one is valid
-            // Adds cards to the player's hand and returns the valid play
-            play = await this.drawUntilValid(player);
-            console.log(play.display() + ', finally!');
+            // Adds cards to the player's hand until a valid card is drawn and then reprompts the user to pick a card   
+            play = await this.drawUntilValid(player); 
         } 
 
         // With valid card, player plays card
@@ -204,7 +218,7 @@ class Game {
             loop: false,
             choices: [ 
                 ...player.hand.map((card) => ({
-                name: card.display(),
+                name: card.fullDisplay(),
                 value: card
                 })),
                 {name: 'Draw!', value: null }
@@ -215,18 +229,21 @@ class Game {
     }
 
     computerPlay(player) {
-        console.log("I am the robot!");
         const randomIndex = Math.floor(Math.random() * player.hand.length);
-
         return player.hand[randomIndex];
     }
 
-    async validPlay(card) {
+    async validPlay(card, player) {
         if (this.crazySuit !== '' && this.topCard().value === '8') {
             return card.suit === this.crazySuit || this.isEight(card);
         }
 
         if (this.isEight(card)) {
+            if (this.computerOpponent && player !== this.humanPlayer) {
+                this.randomCrazySuit();
+                return true;
+            }
+
             await this.promptCrazySuit();
             return true;
         }
@@ -240,15 +257,29 @@ class Game {
 
         do {
             card = this.stock.deal();
-            valid = await this.validPlay(card);
+            player.takeCard(card);
+
+            valid = await this.validPlay(card, player);
 
             if (!valid) {
                 console.log(`${card.display()}, nope :(`)
-                player.takeCard(card);
             }
         } while (!valid);
 
+        if (!this.computerOpponent || (this.computerOpponent && player === this.humanPlayer)) {
+            if(await this.drawPrompting(card)) {
+                console.log(card.display());
+                return card;
+            } else {
+                return await this.drawUntilValid(player);
+            }
+        }
+        
         return card;
+    }
+
+    async drawPrompting(card) {
+        return await confirm({message: `Do you want to play ${card.display()}`});
     }
 
     // ------------------ UTILITY/HELPER METHODS ------------------
@@ -269,20 +300,25 @@ class Game {
         this.crazySuit = await select({
             message: 'Woohoo! That\'s a crazy eight!  What suit must your opponent play next?',
             loop: false,
-            choices: [
-                {name: 'Hearts', value:'H'},
-                {name: 'Diamonds', value: 'D'},
-                {name: 'Spades', value: 'S'},
-                {name: 'Clubs', value: 'C'},
-            ]
+            choices: Game.suitChoices
         });
+    }
+
+    randomCrazySuit() {
+        const suitIndex = Math.floor(Math.random() * Game.suitChoices.length);
+        this.crazySuit = Game.suitChoices[suitIndex].value;
+        console.log(this.crazySuit);
     }
 
     resetCrazySuit() {
         if (this.crazySuit !== '') {
             this.crazySuit = '';
         }
-     }
+    }
+
+    getSuitName(value) {
+        return Game.suitChoices.find( suit => suit.value === value ).name;
+    }
 
     gameResolve(player) {
         return player.hand.length === 0;
