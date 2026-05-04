@@ -17,7 +17,7 @@
 
 import { input, select, confirm, number } from '@inquirer/prompts';
 import { CardPlayer } from '#players/cardPlayer.js';
-import { Deck } from '#game_pieces/cards/standard_52/deck.js';
+import { Deck } from '#game_parts/cards/standard_52/deck.js';
 import { Shuffle } from '#utility/shuffle.js';
 
 
