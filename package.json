@@ -12,8 +12,8 @@
   "type": "module",
   "imports": {
     "#utility/*": "./utility/*",
-    "#game_pieces/*": "./game_pieces/*",
-    "#players/*": "./game_pieces/players/*"
+    "#game_parts/*": "./game_parts/*",
+    "#players/*": "./game_parts/players/*"
   },
   "dependencies": {
     "@inquirer/prompts": "^8.4.2"
