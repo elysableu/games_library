@@ -34,7 +34,7 @@ class Game {
         this.numPlayers = numPlayers;
         this.players = [];
         this.computerOpponent = computerOpponent;
-        this.humanPlayer;
+        this.humanPlayer = null;
         this.stock = new Deck(true);
         this.discard = [];
         this.crazySuit = '';
