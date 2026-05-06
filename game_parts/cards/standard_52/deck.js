@@ -30,11 +30,3 @@ export class Deck {
         return this.cards.pop();
     }
 }
-
-// Temp Unit Testing ---------------
-// const myDeck = new Deck(true);
-// console.log(myDeck.cards);
-// myDeck.shuffle();
-
-// console.log(myDeck.cards);
-// console.log(myDeck.deal());
