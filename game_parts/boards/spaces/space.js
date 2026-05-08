@@ -1,4 +1,4 @@
-export class Space{
+export class Space {
     constructor(name, type) {
         this.name = name;
         this.type = type;
@@ -31,7 +31,7 @@ export class Space{
         return this.pieces.length === 0;
     }
 
-    displayContents() {
-        return 
+    isSpace() {
+        console.log("Yes this is a space!");
     }
 }
