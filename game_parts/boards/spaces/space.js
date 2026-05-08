@@ -30,8 +30,4 @@ export class Space {
     isEmpty() {
         return this.pieces.length === 0;
     }
-
-    isSpace() {
-        console.log("Yes this is a space!");
-    }
 }
