@@ -14,7 +14,7 @@ export class Space {
 
     trigger(eventName, data) {
         if (this.events.has(eventName)) {
-            this.events.get(eventName)({ ...data, spacE: this});
+            this.events.get(eventName)({ ...data, space: this});
         }
     }
 
