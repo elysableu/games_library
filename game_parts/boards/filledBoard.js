@@ -1,6 +1,5 @@
 import { Board } from './board.js';
-import { Space } from './spaces/space.js';
-
+import { FilledSpace } from './spaces/filledSpace.js';
 
 export class FilledBoard extends Board {
     constructor() {
@@ -22,6 +21,8 @@ export class FilledBoard extends Board {
     }
 
     getNeighbors(x, y) {
+        let neighbors = [];
+
 
     }
 
@@ -36,6 +37,6 @@ export class FilledBoard extends Board {
     }
 
     getOccupied() {
-
+        return this.board.flat().filter(space => !space.isEmpty());
     }
 }
