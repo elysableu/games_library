@@ -1,44 +1,13 @@
+import { Space } from './spaces/space.js';
+
 export class Board {
-    constructor(dimensions, parameterPlacement = false) {
+    constructor(dimensions) {
         this.dimensions = dimensions;
-        this.parameterPlacement = parameterPlacement;
-        this.spaces = null;
-
-        this.build();
-    }
-
-    build() {
-        throw new Error(`${this.constructor.name} must implement build()`);
+        this.board = null;
     }
 
     reset() {
-
+        this.board = null;
+        this.build();
     }
-
-    getSpace(x, y) {
-
-    }
-
-    moveToSpace(piece, destination) {
-
-    }
-
-    isValidPosition(x, y) {
-
-    }
-
-    getNeighbors(x, y) {
-
-    }
-
-    findPiece(piece) {
-
-    }
-
-    getOccupied() {
-
-    }
-
-    
-
 }

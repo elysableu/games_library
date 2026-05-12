@@ -39,20 +39,20 @@ class Game {
     }
 
     static async init() {
-        const computerOpponent = false;
+        let computerOpponentChoice = false;
 
         console.log('Let\'s play mancala!');
         if (await confirm({message: 'Ready?'})) {
-            computerOpponent = await select({
+            computerOpponentChoice = await select({
                 message: 'Who are you playing against?',
                 choices: [
-                    { name: 'Human', value: false},
-                    {name: 'Computer', value: true}
+                    { name: 'Human', value: false },
+                    { name: 'Computer', value: true }
                 ]
             });
         } 
 
-        const game = new Game(computerOpponent);
+        const game = new Game(computerOpponentChoice);
         game.playGame();
     }
 

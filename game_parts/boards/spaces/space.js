@@ -1,4 +1,4 @@
-export class Space{
+export class Space {
     constructor(name, type) {
         this.name = name;
         this.type = type;
@@ -14,7 +14,7 @@ export class Space{
 
     trigger(eventName, data) {
         if (this.events.has(eventName)) {
-            this.events.get(eventName)({ ...data, spacE: this});
+            this.events.get(eventName)({ ...data, space: this});
         }
     }
 
@@ -31,7 +31,7 @@ export class Space{
         return this.pieces.length === 0;
     }
 
-    displayContents() {
-        return 
+    display() {
+        return this.name ? `[${this.name}]` : '[ ]';
     }
 }
