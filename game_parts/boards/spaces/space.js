@@ -30,4 +30,8 @@ export class Space {
     isEmpty() {
         return this.pieces.length === 0;
     }
+
+    display() {
+        return this.name ? `[${this.name}]` : '[ ]';
+    }
 }
