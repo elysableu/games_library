@@ -28,7 +28,6 @@ export class PerimeterBoard extends Board {
 
         // Loop through details and assign each space with the same index the name and type
         configDetails.forEach((detail, i) => {
-            console.log(detail);
             this.board[i].name = detail.name;
             this.board[i].type = detail.type;
         });
@@ -47,11 +46,11 @@ export class PerimeterBoard extends Board {
         const bottom = this.board.slice(x + (y - 2), (2 * x) + (y - 2));
         const left = this.board.slice((2 * x) + ( y - 2));
 
-        console.log(top.map(space => `[ ]`).join(' '));
+        console.log(top.map(space => space.display()).join(' '));
         for (let i = 0; i < left.length; i++) {
-            console.log(`[ ] ${'    '.repeat(x - 2)}[ ]`);
+            console.log(`${left[i].display()}${'    '.repeat(x - 2)}${right[i].display()}`);
         }
-        console.log(bottom.map(space => `[ ]`).join(' '));
+        console.log(bottom.map(space => space.display()).join(' '));
     }
 
     isValidPosition(index) {
