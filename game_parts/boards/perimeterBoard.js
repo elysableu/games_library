@@ -1,30 +1,44 @@
 import { Board } from './board.js';
-import { Space } from './spaces/space.js';
-
+import { PerimeterSpace } from './spaces/perimeterSpace.js';
 
 export class PerimeterBoard extends Board {
-    constructor() {
+    constructor(dimensions, config, cyclical = false) {
+        super(dimensions);
+        this.config = config;
+        this.cyclical = cyclical;
+
         this.build();
     }
 
+    // ----------------- BUILD METHODS -----------------
     build() {
-       this.board = Array.from({ length: this.calculatePerimeter() }, () => {
-            new Space()
+        // Create board with dimentions (array length)
+       this.board = Array.from({ length: this.calculatePerimeter() }, (_, i) => 
+            new PerimeterSpace(null, null, i)
+        );
+
+        this.configSpaces(this.config);
+    }
+
+    configSpaces(configDetails) {
+        // Check that details.length is equal to the board.length (same as num of spaces)
+        if (configDetails.length !== this.board.length) {
+            throw new Error('Config length does not match the board length');
+        }
+
+        // Loop through details and assign each space with the same index the name and type
+        configDetails.forEach((detail, i) => {
+            console.log(detail);
+            this.board[i].name = detail.name;
+            this.board[i].type = detail.type;
         });
     }
 
-    getSpace(x, y) {
-
+    calculatePerimeter() {
+        return (2 * this.dimensions.x) + (2 * this.dimensions.y) - 4;
     }
 
-    isValidPosition(x, y) {
-
-    }
-
-    getNeighbors(x, y) {
-
-    }
-
+    // ----------------- GAMEPLAY METHDS -----------------
     display() {
         const { x, y } = this.dimensions;
 
@@ -40,15 +54,42 @@ export class PerimeterBoard extends Board {
         console.log(bottom.map(space => `[ ]`).join(' '));
     }
 
-    findPiece(piece) {
-
+    isValidPosition(index) {
+        return index >= 0 && index < this.board.length;
     }
 
+    getSpace(index) {
+       if (!this.isValidPosition(index)) throw new Error(`Invalid index: ${index}`);
+        return this.board[index];
+    }
+
+    getNeighbors(index) {
+        if (!this.isValidPosition(index)) throw new Error(`Invalid index: ${index}`);
+
+        let neighbors = {
+            next: null,
+            previous: null
+        };
+
+        const previousIndex = this.cyclical ? (index - 1 + this.board.length) % this.board.length: index - 1;
+        const nextIndex = this.cyclical ? (index + 1) % this.board.length : index + 1;
+
+        if ( this.board[previousIndex]) {
+            neighbors.previous = this.board[previousIndex];
+        }
+
+        if ( this.board[nextIndex]) {
+            neighbors.next = this.board[nextIndex];
+        }
+
+        return neighbors;
+    }
+  
     getOccupied() {
-
+        return this.board.filter(space => !space.isEmpty());
     }
 
-    calculatePerimeter() {
-        return (2 * this.dimensions.x) + (2 * this.dimensions.y) - 4;
+    findPiece(piece) {
+        return this.board.filter(space => !space.pieces.includes(piece))
     }
 }
