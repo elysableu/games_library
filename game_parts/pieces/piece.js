@@ -1,7 +1,7 @@
 export class Piece {
-    constructor(name, type, owner) {
-        this.name = name;
+    constructor(type, name = null, owner = null) {
         this.type = type;
+        this.name = name;
         this.owner = owner;
     }
 }
