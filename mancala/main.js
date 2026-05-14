@@ -23,14 +23,17 @@
 */
 
 import { input, select, confirm, number } from '@inquirer/prompts';
+import { MancalaBoard } from './mancalaBoard.js';
+import { BoardPlayer } from '#players/boardPlayer.js';
+import { Piece } from '#game_parts/pieces/piece.js';
 
 class Game {
     static totalStones = 48;
-    static boardDimensions = {w: 8, h: 2};
 
     constructor(computerOpponent) {
-        this.board = new Board(boardDimensions);
+        this.board = new MancalaBoard();
         this.players = [];
+        this.currentPlayer = null;
         this.computerOpponent = computerOpponent;
         this.humanPlayer = null;
         this.resolved = false;
@@ -57,22 +60,77 @@ class Game {
     }
 
     build() {
-        // Assign each cup on board typing and/or rules
-        // Assign store as one board location rather than two (or two with shared storage?)
-        // Will consist of a slice of each of the boards nested array
-        // player1: { smallCups: array[0][1...6], store: array[0][0]}
-        // player2: { smallCups: array[1][1...6], store: array[1][7]}
-        
         // Add players -> create generic player and have all others inherit from it
-        // Assign players each a side and a store (side "closest" and store to the right)
+        this.players.push(new BoardPlayer(1)); // Enter player 1
+        this.players.push(new BoardPlayer(2)); // Enter player 2
 
+        if (this.computerOpponent) {
+            this.humanPlayer = this.players[0]; // Player1 is always the human
+        }
 
-        // Distribute the stones into the 12 smallCups -> 4 stone per cup
+        // Randomly select first player
+        this.currentPlayer = this.players[Math.floor(Math.random() * 2)];
+
+        // Create 48 stones (pieces) and add 4 to each cup
+        this.board.board.forEach((space) => {
+            if (space.type !== 'cup') {
+                return;
+            }
+            for (let i = 0; i < 4; i++) {
+                space.addToSpace(new Piece('stone'));
+            }
+        });
     }
 
     playGame() {
+        let resolved = false;
+
+        // Take turns until game is resovled -> all cup type spaces are empty
+        // do {
+            this.takeTurn();
+
+            if (this.isGameResolved()) {
+                resolved = true;
+            }
+
+            // Switch current player at end of turn
+             this.currentPlayer = this.currentPlayer.name === 'Player1' ? this.players[1] : this.players[0]; 
+        // } while (!resolved);
+    }
+    
+    takeTurn() {
+        // Display current board
+        this.board.display(this.currentPlayer.name === 'Player1' ? true : false);
+
+        // Prompt user for turn
+        console.log(`First up is ${this.currentPlayer.name}`);
+
+        // Junction between PVP and PVC
+
+        // Human take turn
+
+        // Computer take turn
+
 
     }
+
+    humanTurn() {
+
+    }
+
+    computerTurn() {
+
+    }
+
+    validMove() {
+
+    }
+
+    isGameResolved() {
+        return false;
+    }
+
+
 }
 
 Game.init();

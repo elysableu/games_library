@@ -28,8 +28,9 @@ export class PerimeterBoard extends Board {
 
         // Loop through details and assign each space with the same index the name and type
         configDetails.forEach((detail, i) => {
-            this.board[i].name = detail.name;
-            this.board[i].type = detail.type;
+            this.board[i].name = detail.name ?? null;
+            this.board[i].type = detail.type ?? null;
+            this.board[i].owner = detail.owner ?? null;
         });
     }
 

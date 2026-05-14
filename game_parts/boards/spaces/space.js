@@ -1,7 +1,8 @@
 export class Space {
-    constructor(name, type) {
+    constructor(name, type, owner = null) {
         this.name = name;
         this.type = type;
+        this.owner = owner;
         this.events = new Map();
         this.pieces = [];
     }
@@ -28,7 +29,11 @@ export class Space {
     }
 
     isEmpty() {
-        return this.pieces.length === 0;
+        return this.count() === 0;
+    }
+
+    count() {
+        return this.pieces.length;
     }
 
     display() {
