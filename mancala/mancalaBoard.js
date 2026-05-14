@@ -26,15 +26,22 @@ export class MancalaBoard extends PerimeterBoard {
         this.store2 = this.board[13];
     }
 
-    display() {
+    display(p1Orientation = true) {
         const { x, y } = this.dimensions;
 
         const cups1 = this.board.slice(0, x - 1);
         const cups2 = this.board.slice(x, (2 * x) - 1);
 
-        console.log(`           ${[...cups2].reverse().map(space => space.display()).join(' ')}`);
-        console.log(`${this.store2.display()} ---------------------------------------------- ${this.store1.display()}`);
-        console.log(`            ${cups1.map(space => space.display()).join(' ')}`);
+        // Add player 1 and player 2 (names) to either end of board for store labeling
+        if (p1Orientation) {
+            console.log(`         ${[...cups2].reverse().map(space => `[ ${space.count()} ]` ).join(' ')}`);
+            console.log(`[ ${this.store2.count()} ] ------------------------------------------ [ ${this.store1.count()} ]`);
+            console.log(`         ${cups1.map(space =>  `[ ${space.count()} ]` ).join(' ')}`);
+        } else {
+            console.log(`        ${[...cups1].reverse().map(space =>  `[ ${space.count()} ]` ).join(' ')}`);
+            console.log(`[ ${this.store1.count()} ] ------------------------------------------ [ ${this.store2.count()} ]`);
+            console.log(`        ${cups2.map(space =>  `[ ${space.count()} ]` ).join(' ')}`);
+        }
     }
 
     playerCups(player) {
