@@ -9,7 +9,7 @@
             - Then distributes them, one by one, into the next cups going counterclockwise
             - SOWING: Players do drop a stone in their own store if they pass it; skip opponent's store
             - EXTRA TURN: If last stone in your hand lands in your own store, you go again.
-            - CAPTURING: If the last stone alnds in an empty cup on your own side, you take that stone and 
+            - CAPTURING: If the last stone lands in an empty cup on your own side, you take that stone and 
             all stones in the opponent's cup directly opposite -> all placed in your store
                 - If opposite cup is empty, nothing is captured.
         Game End:
@@ -61,7 +61,12 @@ class Game {
     }
 
     build() {
-        // Add players -> create generic player and have all others inherit from it
+       this.addPlayers();
+       this.addStonesToCups();
+    }
+
+    addPlayers() {
+         // Add players -> create generic player and have all others inherit from it
         this.players.push(new BoardPlayer(1)); // Enter player 1
         this.players.push(new BoardPlayer(2)); // Enter player 2
 
@@ -71,7 +76,9 @@ class Game {
 
         // Randomly select first player
         this.currentPlayer = this.players[Math.floor(Math.random() * 2)];
+    }
 
+    addStonesToCups() {
         // Create 48 stones (pieces) and add 4 to each cup
         this.board.board.forEach((space) => {
             if (space.type !== 'cup') {
@@ -83,32 +90,39 @@ class Game {
         });
     }
 
-    playGame() {
-        let resolved = false;
-
+    async playGame() {
         // Take turns until game is resovled -> all cup type spaces are empty
-        // do {
-            this.takeTurn();
-
-            if (this.isGameResolved()) {
-                resolved = true;
-            }
+        do {
+            await this.takeTurn();
+            console.log(`${this.currentPlayer.name} has finished their turn`);
 
             // Switch current player at end of turn
-             this.currentPlayer = this.currentPlayer.name === 'Player1' ? this.players[1] : this.players[0]; 
-        // } while (!resolved);
+            if (!this.extraTurn) {
+                this.currentPlayer = this.currentPlayer.name === 'Player1' ? this.players[1] : this.players[0]; 
+            }
+
+            this.isGameResolved();
+            console.log("Current player is now: " + this.currentPlayer.name);
+            console.log("Current resolve: " + this.resolved);
+
+        } while (!this.resolved);
     }
     
     async takeTurn() {
+        if (this.extraTurn) {
+            console.log(`${this.currentPlayer} has an extra turn!`);
+            this.toggleExtraTurn(); // Toggle off if on, after starting an extra turn
+        } else {
+            console.log(`${this.currentPlayer.name} it\'s your turn!`);
+        }
+        
         // Display current board
         console.log('');
         console.log('Here\'s the current board: ');
         console.log('');
         this.board.display(this.currentPlayer.name === 'Player1' ? true : false);
-
-        // Prompt user for turn
-        console.log(`First up is ${this.currentPlayer.name}`);
-
+        
+        
         let moveFrom = null;
         
         // Junction between PVP and PVC
@@ -123,48 +137,89 @@ class Game {
         } else {
             moveFrom = await this.humanTurn();
         }
-
-        console.log(`Sowing ${moveFrom.count()} stones from cup #${moveFrom.index + 1}`);
-
-        // this.sowStones(moveFrom);
+        
+        this.sowStones(moveFrom);
+        this.board.display(this.currentPlayer.name === 'Player1' ? true : false);
     }
-
+    
     async humanTurn() {
-        const cupIndex = await number({
+        const cup = await number({
             message: 'Pick a cup to gather stones from ( 1 -> 6 )',
             min: 1,
             max: 6
         });
 
+        const cupIndex =  this.currentPlayer.name === 'Player1' ? cup : cup + 7;
+
         return this.board.board[cupIndex - 1];
     }
-
+    
     computerTurn() {
         console.log('Computer playing--------------');
         return Math.floor(Math.random() * 6);
     }
-
-    sowStones(startSpace) {
+    
+    sowStones(space) {
+        // Add stones into "hand" temp variable
+        let currentCup = space;
+        let stones = currentCup.pieces;
+        
         // Remove all pieces from starting space
+        space.removeAllFromSpace();
 
-        // Add into temp "hand"
+        console.log(`Sowing ${stones.length} stones from cup #${currentCup.index % 6}`);
 
         // Add one into the n following cups until temp is empty (SKIPPING the enemies store)
+        do {
+            let nextCup = this.board.getNeighbors(currentCup.index).next;
+            if (this.cupCheck(nextCup)) {
+                const stone = stones.pop();
+                nextCup.addToSpace(stone);
+                currentCup = nextCup;
+            } 
+        } while (stones.length !== 0);
 
+        console.log("Stones have been places!");
         // Check conditions of final cup
-        // Are we capturing? 
+        this.resolveTurn(currentCup);
     }
 
-    // When landing in an empty cup the player captures the stones from the opposite side
-    // and place in store
-    // If nothing in opposite, capture nothing
-    capture() {
-
-    }
-
-    landInStore(space) {
-        if (space.type === 'store' && space.owner === this.currentPlayer.name) {
+    resolveTurn(space) {
+        console.log('Resolving turn');
+        if (space.type === 'cup' && space.count() === 0) {
+            this.capture(space);
+        } else if (space.type === 'store' && space.owner === this.currentPlayer.name) {
             this.toggleExtraTurn();
+        }
+    }
+
+    capture(space) {
+        console.log("Capturing a piece!");
+        // When landing in an empty cup
+        const opposite = this.board.findOpposite(space);
+
+        // If nothing in opposite, capture nothing
+        if (!opposite.count()) {
+            return;
+        } 
+
+        // the player captures the stones from the opposite side
+        let stones = opposite.pieces;
+        opposite.removeAllFromSpace();
+
+        // and place in store
+        this.board.playerStore(this.currentPlayer).addToSpace(stones);
+        console.log(`You just captured ${opposite.count()} stones!`);
+    }
+
+    cupCheck(space) {
+        console.log(space);
+        if (space.type === 'cup') {
+            return true;
+        } else if (space.type === 'store' && space.owner === this.currentPlayer.name) {
+           return true;
+        } else  {
+            return false;
         }
     }
 
@@ -172,15 +227,25 @@ class Game {
         this.extraTurn === true ? false : true;
     }
 
-    validMove() {
-
-    }
-
     isGameResolved() {
-        return false;
+        console.log("Check to resolve game");
+        const cups1 = this.board.playerCups(this.players[0]);
+        const cups2 = this.board.playerCups(this.players[1]);
+
+        if (this.allEmpty(cups1) || this.allEmpty(cups2)) {
+            this.resolved = true;
+        } else {
+            this.resolved = false;
+        }
     }
 
+    allEmpty(cups) {
+        return cups.every(cup => cup.isEmpty());
+    }
 
+    playerScore() {
+
+    }
 }
 
 Game.init();
