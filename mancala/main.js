@@ -36,6 +36,7 @@ class Game {
         this.currentPlayer = null;
         this.computerOpponent = computerOpponent;
         this.humanPlayer = null;
+        this.extraTurn = false;
         this.resolved = false;
 
         this.build();
@@ -98,28 +99,77 @@ class Game {
         // } while (!resolved);
     }
     
-    takeTurn() {
+    async takeTurn() {
         // Display current board
+        console.log('');
+        console.log('Here\'s the current board: ');
+        console.log('');
         this.board.display(this.currentPlayer.name === 'Player1' ? true : false);
 
         // Prompt user for turn
         console.log(`First up is ${this.currentPlayer.name}`);
 
+        let moveFrom = null;
+        
         // Junction between PVP and PVC
+        if (this.computerOpponent) {
+            if (this.currentPlayer === this.humanPlayer) {
+                // Human take turn
+                moveFrom = await this.humanTurn();
+            } else {
+                // Computer take turn
+                moveFrom = await this.computerTurn();
+            }
+        } else {
+            moveFrom = await this.humanTurn();
+        }
 
-        // Human take turn
+        console.log(`Sowing ${moveFrom.count()} stones from cup #${moveFrom.index + 1}`);
 
-        // Computer take turn
-
-
+        // this.sowStones(moveFrom);
     }
 
-    humanTurn() {
+    async humanTurn() {
+        const cupIndex = await number({
+            message: 'Pick a cup to gather stones from ( 1 -> 6 )',
+            min: 1,
+            max: 6
+        });
 
+        return this.board.board[cupIndex - 1];
     }
 
     computerTurn() {
+        console.log('Computer playing--------------');
+        return Math.floor(Math.random() * 6);
+    }
 
+    sowStones(startSpace) {
+        // Remove all pieces from starting space
+
+        // Add into temp "hand"
+
+        // Add one into the n following cups until temp is empty (SKIPPING the enemies store)
+
+        // Check conditions of final cup
+        // Are we capturing? 
+    }
+
+    // When landing in an empty cup the player captures the stones from the opposite side
+    // and place in store
+    // If nothing in opposite, capture nothing
+    capture() {
+
+    }
+
+    landInStore(space) {
+        if (space.type === 'store' && space.owner === this.currentPlayer.name) {
+            this.toggleExtraTurn();
+        }
+    }
+
+    toggleExtraTurn() {
+        this.extraTurn === true ? false : true;
     }
 
     validMove() {
