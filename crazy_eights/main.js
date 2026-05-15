@@ -153,7 +153,7 @@ class Game {
             console.log(`The next card must be ${this.getSuitName(this.crazySuit)}`);
         }
 
-        let play;
+        let play = null;
         let validPlay = false;
         let playsChecked = [];
         

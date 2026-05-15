@@ -32,20 +32,28 @@ export class MancalaBoard extends PerimeterBoard {
         const cups1 = this.board.slice(0, x - 1);
         const cups2 = this.board.slice(x, (2 * x) - 1);
 
-        // Add player 1 and player 2 (names) to either end of board for store labeling
+        //TODO: Add labeling for cups 
         if (p1Orientation) {
-            console.log(`         ${[...cups2].reverse().map(space => `[ ${space.count()} ]` ).join(' ')}`);
-            console.log(`[ ${this.store2.count()} ] ------------------------------------------ [ ${this.store1.count()} ]`);
-            console.log(`         ${cups1.map(space =>  `[ ${space.count()} ]` ).join(' ')}`);
+            console.log(`                  ${[...cups2].reverse().map(space => `[ ${space.count()} ]` ).join(' ')}`);
+            console.log(`Player2 -> [ ${this.store2.count()} ] ------------------------------------------ [ ${this.store1.count()} ] <- Player1`);
+            console.log(`                   ${cups1.map(space =>  `[ ${space.count()} ]` ).join(' ')}`);
         } else {
-            console.log(`        ${[...cups1].reverse().map(space =>  `[ ${space.count()} ]` ).join(' ')}`);
-            console.log(`[ ${this.store1.count()} ] ------------------------------------------ [ ${this.store2.count()} ]`);
-            console.log(`        ${cups2.map(space =>  `[ ${space.count()} ]` ).join(' ')}`);
+            console.log(`                  ${[...cups1].reverse().map(space =>  `[ ${space.count()} ]` ).join(' ')}`);
+            console.log(`Player1 -> [ ${this.store1.count()} ] ------------------------------------------ [ ${this.store2.count()} ] <- Player2`);
+            console.log(`                  ${cups2.map(space =>  `[ ${space.count()} ]` ).join(' ')}`);
         }
     }
 
     playerCups(player) {
         return this.board.filter((space) => space.type === 'cup' && space.owner === player.name);
+    }
+
+    playerStore(player) {
+        if (player.name === 'Player1') {
+            return this.store1;
+        } else {
+            return this.store2;
+        }
     }
     
     findOpposite(space) {

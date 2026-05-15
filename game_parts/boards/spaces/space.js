@@ -19,13 +19,21 @@ export class Space {
         }
     }
 
-    addToSpace(piece) {
-        this.pieces.push(piece);
+    addToSpace(pieces) {
+        if (Array.isArray(pieces)) {
+            this.pieces.push(...pieces);
+        } else {
+            this.pieces.push(pieces);
+        }
     }
 
     removeFromSpace(piece) {
         const index = this.pieces.indexOf(piece);
         if (index !== -1) this.pieces.splice(index, 1);
+    }
+
+    removeAllFromSpace() {
+        this.pieces = [];
     }
 
     isEmpty() {
