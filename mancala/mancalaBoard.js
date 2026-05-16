@@ -59,7 +59,7 @@ export class MancalaBoard extends PerimeterBoard {
     findOpposite(space) {
         const index = space.index;
         const length = this.board.length;
-        const oppIndex = (length - index); 
+        const oppIndex = (length - 2) - index; 
         return this.board[oppIndex];
     }
 }
