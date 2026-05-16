@@ -79,10 +79,16 @@ A [Codecademy](https://codecademy.com) backend course exercise. Navigate a rando
 
 ## 🔜 Games Coming Soon
 
+### Card Games
 - Gin Rummy
-- Go Fish
-- Blackjack
+- Go Fish 
+- Blackjack (Console UI)
 - Snap
+
+### Board Games
+- Clue (React UI -> Deployment)
+- Parcheesi (React UI -> Deployment)
+- Candy Land
 
 ---
 

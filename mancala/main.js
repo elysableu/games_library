@@ -96,21 +96,22 @@ class Game {
             await this.takeTurn();
             console.log(`${this.currentPlayer.name} has finished their turn`);
 
+            this.isGameResolved();
+
             // Switch current player at end of turn
             if (!this.extraTurn) {
                 this.currentPlayer = this.currentPlayer.name === 'Player1' ? this.players[1] : this.players[0]; 
             }
-
-            this.isGameResolved();
-            console.log("Current player is now: " + this.currentPlayer.name);
-            console.log("Current resolve: " + this.resolved);
-
         } while (!this.resolved);
+
+        const winner = this.determineWinner();
+        console.log('That\'s that game!');
+        console.log(`${winner.name} is the winner!`);
     }
     
     async takeTurn() {
         if (this.extraTurn) {
-            console.log(`${this.currentPlayer} has an extra turn!`);
+            console.log(`${this.currentPlayer.name} has an extra turn!`);
             this.toggleExtraTurn(); // Toggle off if on, after starting an extra turn
         } else {
             console.log(`${this.currentPlayer.name} it\'s your turn!`);
@@ -122,32 +123,42 @@ class Game {
         console.log('');
         this.board.display(this.currentPlayer.name === 'Player1' ? true : false);
         
-        
         let moveFrom = null;
-        
-        // Junction between PVP and PVC
-        if (this.computerOpponent) {
-            if (this.currentPlayer === this.humanPlayer) {
-                // Human take turn
-                moveFrom = await this.humanTurn();
+
+        do {
+            // Junction between PVP and PVC
+            if (this.computerOpponent) {
+                if (this.currentPlayer === this.humanPlayer) {
+                    // Human take turn
+                    moveFrom = await this.humanTurn();
+                } else {
+                    // Computer take turn
+                    moveFrom = await this.computerTurn();
+                }
             } else {
-                // Computer take turn
-                moveFrom = await this.computerTurn();
+                moveFrom = await this.humanTurn();
             }
-        } else {
-            moveFrom = await this.humanTurn();
-        }
+
+            if (moveFrom.count() === 0) {
+                moveFrom = null;
+                console.log('That cup has no stones to move!  Try again!');
+            }
+        } while (moveFrom === null); 
         
         this.sowStones(moveFrom);
         this.board.display(this.currentPlayer.name === 'Player1' ? true : false);
     }
     
     async humanTurn() {
-        const cup = await number({
-            message: 'Pick a cup to gather stones from ( 1 -> 6 )',
-            min: 1,
-            max: 6
-        });
+        let cup = null;
+
+        do {
+           cup = await number({
+                message: 'Pick a cup to gather stones from ( 1 -> 6 )',
+                min: 1,
+                max: 6
+            })
+        } while (!cup);
 
         const cupIndex =  this.currentPlayer.name === 'Player1' ? cup : cup + 7;
 
@@ -163,6 +174,7 @@ class Game {
         // Add stones into "hand" temp variable
         let currentCup = space;
         let stones = currentCup.pieces;
+        let landingCupCount = null;
         
         // Remove all pieces from starting space
         space.removeAllFromSpace();
@@ -172,21 +184,24 @@ class Game {
         // Add one into the n following cups until temp is empty (SKIPPING the enemies store)
         do {
             let nextCup = this.board.getNeighbors(currentCup.index).next;
+            currentCup = nextCup;
+
+            if (stones.length === 1) {
+                landingCupCount = nextCup.count();
+            }
+
             if (this.cupCheck(nextCup)) {
                 const stone = stones.pop();
                 nextCup.addToSpace(stone);
-                currentCup = nextCup;
             } 
         } while (stones.length !== 0);
 
-        console.log("Stones have been places!");
         // Check conditions of final cup
-        this.resolveTurn(currentCup);
+        this.resolveTurn(currentCup, landingCupCount);
     }
 
-    resolveTurn(space) {
-        console.log('Resolving turn');
-        if (space.type === 'cup' && space.count() === 0) {
+    resolveTurn(space, landingCount) {
+        if (space.type === 'cup' && landingCount === 0) {
             this.capture(space);
         } else if (space.type === 'store' && space.owner === this.currentPlayer.name) {
             this.toggleExtraTurn();
@@ -194,41 +209,36 @@ class Game {
     }
 
     capture(space) {
-        console.log("Capturing a piece!");
         // When landing in an empty cup
         const opposite = this.board.findOpposite(space);
-
         // If nothing in opposite, capture nothing
-        if (!opposite.count()) {
+        if (opposite.count() === 0) {
+            console.log('No stones in the opposite cup!');
             return;
         } 
 
         // the player captures the stones from the opposite side
         let stones = opposite.pieces;
         opposite.removeAllFromSpace();
-
+3
         // and place in store
         this.board.playerStore(this.currentPlayer).addToSpace(stones);
-        console.log(`You just captured ${opposite.count()} stones!`);
+        console.log(`You just captured ${stones.length} stones!`);
     }
 
     cupCheck(space) {
-        console.log(space);
-        if (space.type === 'cup') {
+        if (space.type === 'cup' || (space.type === 'store' && space.owner === this.currentPlayer.name)) {
             return true;
-        } else if (space.type === 'store' && space.owner === this.currentPlayer.name) {
-           return true;
         } else  {
             return false;
         }
     }
 
     toggleExtraTurn() {
-        this.extraTurn === true ? false : true;
+        this.extraTurn = !this.extraTurn;
     }
 
     isGameResolved() {
-        console.log("Check to resolve game");
         const cups1 = this.board.playerCups(this.players[0]);
         const cups2 = this.board.playerCups(this.players[1]);
 
@@ -243,8 +253,25 @@ class Game {
         return cups.every(cup => cup.isEmpty());
     }
 
-    playerScore() {
+    determineWinner() {
+        return this.playerScore(this.players[0]) > this.playerScore(this.players[1]) ? this.players[0] : this.players[1];
+    }
 
+    playerScore(player) {
+        let store = this.board.playerStore(player);
+        let cups = this.board.playerCups(player);
+
+        if (this.allEmpty(cups)) {
+            return store.count();
+        } else {
+            cups.forEach(cup => {
+                const stones = cup.pieces;
+                cup.removeAllFromSpace();
+                store.addToSpace(stones);
+            })
+
+            return store.count();
+        }
     }
 }
 
