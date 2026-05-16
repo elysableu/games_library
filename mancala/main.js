@@ -102,9 +102,6 @@ class Game {
             if (!this.extraTurn) {
                 this.currentPlayer = this.currentPlayer.name === 'Player1' ? this.players[1] : this.players[0]; 
             }
-
-            console.log("Current resolve: " + this.resolved);
-
         } while (!this.resolved);
 
         const winner = this.determineWinner();
@@ -174,7 +171,6 @@ class Game {
     }
     
     sowStones(space) {
-        console.log('Moving from space: ' + space.index);
         // Add stones into "hand" temp variable
         let currentCup = space;
         let stones = currentCup.pieces;
@@ -205,7 +201,6 @@ class Game {
     }
 
     resolveTurn(space, landingCount) {
-        console.log('Resolving turn');
         if (space.type === 'cup' && landingCount === 0) {
             this.capture(space);
         } else if (space.type === 'store' && space.owner === this.currentPlayer.name) {
@@ -214,11 +209,8 @@ class Game {
     }
 
     capture(space) {
-        console.log('The landing space is: ' + space.index);
         // When landing in an empty cup
         const opposite = this.board.findOpposite(space);
-        console.log('The space opposite is: ' + opposite.index);
-        console.log('This space has this many stones: ' + opposite.count());
         // If nothing in opposite, capture nothing
         if (opposite.count() === 0) {
             console.log('No stones in the opposite cup!');
@@ -227,12 +219,9 @@ class Game {
 
         // the player captures the stones from the opposite side
         let stones = opposite.pieces;
-        console.log(stones.length === opposite.count());
-        console.log("Picked up stones: " + stones);
         opposite.removeAllFromSpace();
 3
         // and place in store
-        console.log("THis is the players store: " + this.board.playerStore(this.currentPlayer).index);
         this.board.playerStore(this.currentPlayer).addToSpace(stones);
         console.log(`You just captured ${stones.length} stones!`);
     }
@@ -250,7 +239,6 @@ class Game {
     }
 
     isGameResolved() {
-        console.log("Check to resolve game");
         const cups1 = this.board.playerCups(this.players[0]);
         const cups2 = this.board.playerCups(this.players[1]);
 
@@ -281,7 +269,7 @@ class Game {
                 cup.removeAllFromSpace();
                 store.addToSpace(stones);
             })
-            
+
             return store.count();
         }
     }
